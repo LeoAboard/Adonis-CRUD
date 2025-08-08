@@ -8,7 +8,7 @@ export default class extends BaseSchema {
       table.increments('id')
 
       table.integer('id_usuario')
-      table.string('mensagem')
+      table.string('mensagem').notNullable()
       table.boolean('status')
 
       /**
