@@ -16,6 +16,7 @@ export default class extends BaseSchema {
        */
       table.timestamp('data_cadastro', { useTz: true })
       table.timestamp('data_atualizacao', { useTz: true })
+      table.boolean('ativo').defaultTo(1)
     })
   }
 

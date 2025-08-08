@@ -19,4 +19,7 @@ export default class Usuario extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public data_atualizacao: DateTime
+
+  @column()
+  public ativo: boolean
 }

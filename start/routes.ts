@@ -23,5 +23,10 @@ import Route from '@ioc:Adonis/Core/Route'
 Route.post("/signup", "UsersController.create")
 Route.post("/signin", "UsersController.login")
 Route.get("/usuario", "UsersController.exibir")
-Route.put("/usuario", "UsersController.atualizar")
-Route.delete("/usuario", "UsersController.excluir")
+Route.put("/usuario", "UsersController.atualizar").middleware('auth')
+Route.delete("/usuario", "UsersController.excluir").middleware('auth')
+
+Route.post("/lista", "ListasController.create").middleware('auth')
+Route.get("/lista", "ListasController.exibir").middleware('auth')
+Route.put("/lista", "ListasController.atualizar").middleware('auth')
+Route.delete("/lista", "ListasController.excluir").middleware('auth')
