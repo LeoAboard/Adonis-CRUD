@@ -1,5 +1,4 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Database from '@ioc:Adonis/Lucid/Database'
 import Usuario from 'App/Models/Usuario'
 import jwt from 'jsonwebtoken'
 
@@ -26,7 +25,7 @@ export default class UsersController {
     public async login({ request, response }: HttpContextContract){
         const { email, senha } = request.all()
 
-        const usuario = await Database.from('usuarios').select('id','nome', 'email', 'senha', 'ativo').where('email', '=', `${email}`).andWhere('senha', '=', `${senha}`)
+        const usuario = await Usuario.query().select('id','nome', 'email', 'senha', 'ativo').where('email', '=', `${email}`).andWhere('senha', '=', `${senha}`)
 
         if(!usuario.length){
             return 'Email ou senha incorreto.'
@@ -44,8 +43,8 @@ export default class UsersController {
             maxAge: 5*24*60*60*1000
         })
 
-        if(usuario[0].ativo == 0){
-            await Database.from('usuarios').where('email', '=', `${email}`).update({'ativo': 1})
+        if(usuario[0].ativo == false){
+            await Usuario.query().where('email', '=', `${email}`).update({'ativo': 1})
             return `Bem vindo de volta ${usuario[0].nome}!`
         }
 
@@ -68,7 +67,7 @@ export default class UsersController {
         const { novoNome, novoEmail, novaSenha } = request.all()
 
         if(novoNome){
-            await Database.from('usuarios').where('id', '=', `${payload}`).update({'nome': novoNome})
+            await Usuario.query().where('id', '=', `${payload}`).update({'nome': novoNome})
             return 'Seu nome foi alterado com sucesso.'
         }
         if(novoEmail){
@@ -78,11 +77,11 @@ export default class UsersController {
                 return 'Este email já está em uso.'
             }
 
-            await Database.from('usuarios').where('id', '=', `${payload}`).update({'email': novoEmail})
+            await Usuario.query().where('id', '=', `${payload}`).update({'email': novoEmail})
             return 'Seu email foi alterado com sucesso.'
         }
         if(novaSenha){
-            await Database.from('usuarios').where('id', '=', `${payload}`).update({'senha': novaSenha})
+            await Usuario.query().where('id', '=', `${payload}`).update({'senha': novaSenha})
             return 'Sua senha foi alterada com sucesso.'
         }
 
@@ -92,7 +91,7 @@ export default class UsersController {
     public async excluir({ response, payload }: HttpContextContract){
 
         response.clearCookie('token')
-        await Database.from('usuarios').where('id', '=', `${payload}`).update({'ativo': 0})
+        await Usuario.query().where('id', '=', `${payload}`).update({'ativo': 0})
         return 'Sua conta foi excluída com sucesso.'
     }
 }
