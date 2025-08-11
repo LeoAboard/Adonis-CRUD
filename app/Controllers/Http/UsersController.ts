@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import CriarUsuarioValidator from 'App/Validators/CriarUsuarioValidator'
+import AtualizarUsuarioValidator from 'App/Validators/AtualizarUsuarioValidator'
 import Hash from '@ioc:Adonis/Core/Hash'
 import Usuario from 'App/Models/Usuario'
 import jwt from 'jsonwebtoken'
@@ -67,24 +68,18 @@ export default class UsersController {
     }
 
     public async atualizar({ request, payload }: HttpContextContract){
-        const { novoNome, novoEmail, novaSenha } = request.all()
+        const dadosUsuario = await request.validate(AtualizarUsuarioValidator)
 
-        if(novoNome){
-            await Usuario.query().where('id', '=', `${payload}`).update({'nome': novoNome})
+        if(dadosUsuario.nome){
+            await Usuario.query().where('id', '=', `${payload}`).update({'nome': await dadosUsuario.nome})
             return 'Seu nome foi alterado com sucesso.'
         }
-        if(novoEmail){
-
-            const existEmail = await Usuario.findBy('email', novoEmail)
-                if(existEmail){
-                return 'Este email já está em uso.'
-            }
-
-            await Usuario.query().where('id', '=', `${payload}`).update({'email': novoEmail})
+        if(dadosUsuario.email){
+            await Usuario.query().where('id', '=', `${payload}`).update({'email': dadosUsuario.email})
             return 'Seu email foi alterado com sucesso.'
         }
-        if(novaSenha){
-            await Usuario.query().where('id', '=', `${payload}`).update({'senha': await Hash.make(novaSenha)})
+        if(dadosUsuario.senha){
+            await Usuario.query().where('id', '=', `${payload}`).update({'senha': await Hash.make(dadosUsuario.senha)})
             return 'Sua senha foi alterada com sucesso.'
         }
 
