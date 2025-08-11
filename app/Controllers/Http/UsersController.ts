@@ -71,7 +71,7 @@ export default class UsersController {
         const dadosUsuario = await request.validate(AtualizarUsuarioValidator)
 
         if(dadosUsuario.nome){
-            await Usuario.query().where('id', '=', `${payload}`).update({'nome': await dadosUsuario.nome})
+            await Usuario.query().where('id', '=', `${payload}`).update({'nome': dadosUsuario.nome})
             return 'Seu nome foi alterado com sucesso.'
         }
         if(dadosUsuario.email){
