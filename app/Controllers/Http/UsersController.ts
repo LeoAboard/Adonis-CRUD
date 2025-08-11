@@ -21,7 +21,7 @@ export default class UsersController {
             return 'Usuario criado com sucesso.'
         } catch(error:any){
             
-            return response.badRequest(error.CustomMessages)
+            return response.badRequest(error.message)
         }
     }
 
@@ -29,6 +29,10 @@ export default class UsersController {
         const { email, senha } = request.all()
 
         const usuario = await Usuario.query().select('id','nome', 'email', 'senha', 'ativo').where('email', '=', `${email}`)
+
+        if(usuario.length == 0){
+            return 'Email ou senha incorreto'
+        }
         
         if(await Hash.verify(usuario[0].senha, senha)){
 
@@ -71,7 +75,7 @@ export default class UsersController {
         const dadosUsuario = await request.validate(AtualizarUsuarioValidator)
 
         if(dadosUsuario.nome){
-            await Usuario.query().where('id', '=', `${payload}`).update({'nome': await dadosUsuario.nome})
+            await Usuario.query().where('id', '=', `${payload}`).update({'nome': dadosUsuario.nome})
             return 'Seu nome foi alterado com sucesso.'
         }
         if(dadosUsuario.email){
