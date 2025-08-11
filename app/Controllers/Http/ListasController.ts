@@ -1,22 +1,24 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import CriarListaValidator from 'App/Validators/CriarListaValidator'
 import Lista from 'App/Models/Lista'
 
 export default class ListasController {
 
-    public async create({ request, payload }: HttpContextContract){
-        const { mensagem } = request.all()
+    public async create({ request, response, payload }: HttpContextContract){
 
         try{
-            await Lista.create({
+            const validator = await request.validate(CriarListaValidator)
+
+            const lista = await Lista.create({
                 id_usuario: payload,
-                mensagem,
+                mensagem: validator.mensagem,
                 status: false
             })
 
-            return `Sua mensagem foi enviada: ${mensagem}`
+            return `Sua mensagem foi enviada: ${lista.mensagem}`
 
         } catch(error:any){
-            return 'Escreva uma mensagem.'
+            return response.badRequest(error.CustomMessages)
         }
     }
 
@@ -28,6 +30,10 @@ export default class ListasController {
 
     public async atualizar({ request, payload }: HttpContextContract){
         const { id } = request.all()
+
+        if(!payload){
+            return 'erro'
+        }
 
         try{
             const lista = await Lista.query().where('id', id).andWhere('id_usuario', payload).firstOrFail()
@@ -43,6 +49,10 @@ export default class ListasController {
 
     public async excluir({ request, payload }: HttpContextContract){
         const { id } = request.all()
+
+        if(!payload){
+            return 'erro'
+        }
 
         try{
             const lista = await Lista.query().where('id', id).andWhere('id_usuario', payload).delete()

@@ -15,9 +15,9 @@ export default class Auth {
       return response.unauthorized({message: 'Faça login para continuar.'})
     }
 
-    const payload = jwt.verify(token, '123')
+    const payload: any = jwt.verify(token, '123')
     
-    ctx.payload = payload.id
+    ctx.payload = payload?.id
 
     await next()
   }

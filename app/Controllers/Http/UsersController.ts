@@ -1,25 +1,26 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import CriarUsuarioValidator from 'App/Validators/CriarUsuarioValidator'
 import Usuario from 'App/Models/Usuario'
 import jwt from 'jsonwebtoken'
 
 export default class UsersController {
 
-    public async create({ request }:  HttpContextContract){
-        const { nome, email, senha } = request.all()
+    public async create({ request, response }:  HttpContextContract){
 
-        const existEmail = await Usuario.findBy('email', email)
+        try{
+            const dadosUsuario = await request.validate(CriarUsuarioValidator)
 
-        if(!existEmail){
             await Usuario.create({
-                nome,
-                email,
-                senha
+                nome: dadosUsuario.nome,
+                email: dadosUsuario.email,
+                senha: dadosUsuario.senha
             })
 
-            return 'Usuário cadastrado com sucesso.'
+            return 'Usuario criado com sucesso.'
+        } catch(error:any){
+            
+            return response.badRequest(error.CustomMessages)
         }
-
-        return 'Este email já está em uso.'
     }
 
     public async login({ request, response }: HttpContextContract){
