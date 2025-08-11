@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import CriarUsuarioValidator from 'App/Validators/CriarUsuarioValidator'
+import Hash from '@ioc:Adonis/Core/Hash'
 import Usuario from 'App/Models/Usuario'
 import jwt from 'jsonwebtoken'
 
@@ -26,30 +27,31 @@ export default class UsersController {
     public async login({ request, response }: HttpContextContract){
         const { email, senha } = request.all()
 
-        const usuario = await Usuario.query().select('id','nome', 'email', 'senha', 'ativo').where('email', '=', `${email}`).andWhere('senha', '=', `${senha}`)
+        const usuario = await Usuario.query().select('id','nome', 'email', 'senha', 'ativo').where('email', '=', `${email}`)
+        
+        if(await Hash.verify(usuario[0].senha, senha)){
 
-        if(!usuario.length){
-            return 'Email ou senha incorreto.'
+            const token = jwt.sign(
+                {id: usuario[0].id},
+                '123',
+                {expiresIn: '5d'}
+            ) 
+
+            response.cookie('token', token, {
+                httpOnly: true,
+                sameSite: true,
+                maxAge: 5*24*60*60*1000
+            })
+
+            if(usuario[0].ativo == false){
+                await Usuario.query().where('email', '=', `${email}`).update({'ativo': 1})
+                return `Bem vindo de volta ${usuario[0].nome}!`
+            }
+
+            return `Bem vindo ${usuario[0].nome}!`
         }
-
-        const token = jwt.sign(
-            {id: usuario[0].id},
-            '123',
-            {expiresIn: '5d'}
-        ) 
-
-        response.cookie('token', token, {
-            httpOnly: true,
-            sameSite: true,
-            maxAge: 5*24*60*60*1000
-        })
-
-        if(usuario[0].ativo == false){
-            await Usuario.query().where('email', '=', `${email}`).update({'ativo': 1})
-            return `Bem vindo de volta ${usuario[0].nome}!`
-        }
-
-        return `Bem vindo ${usuario[0].nome}!`
+    
+        return 'Email ou senha incorreto'
     }
 
     public async exibir({ request }: HttpContextContract){
@@ -74,7 +76,7 @@ export default class UsersController {
         if(novoEmail){
 
             const existEmail = await Usuario.findBy('email', novoEmail)
-            if(existEmail){
+                if(existEmail){
                 return 'Este email já está em uso.'
             }
 
@@ -82,7 +84,7 @@ export default class UsersController {
             return 'Seu email foi alterado com sucesso.'
         }
         if(novaSenha){
-            await Usuario.query().where('id', '=', `${payload}`).update({'senha': novaSenha})
+            await Usuario.query().where('id', '=', `${payload}`).update({'senha': await Hash.make(novaSenha)})
             return 'Sua senha foi alterada com sucesso.'
         }
 
