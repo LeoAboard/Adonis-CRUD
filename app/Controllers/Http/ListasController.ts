@@ -16,18 +16,18 @@ export default class ListasController {
                 status: false
             })
 
-            return response.accepted({message: 'Sua mensagem foi enviada.'})
+            return response.created({message: 'Sua mensagem foi enviada.'})
 
         }catch(error:any){
             return response.unauthorized(error)
         }
     }
 
-    public async exibir({ auth }: HttpContextContract){
+    public async exibir({ response, auth }: HttpContextContract){
 
         await auth.use('web').authenticate()
         const lista = await Lista.query().where('id_usuario', '=', `${auth.use('web').user?.id}`).select('id', 'mensagem', 'status')
-        return lista
+        return response.ok(lista)
     }
 
     public async atualizar({ request, response, auth }: HttpContextContract){
@@ -40,7 +40,7 @@ export default class ListasController {
             const lista = await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('web').user?.id}`).firstOrFail()
             lista.merge({ status: !lista.status })
             await lista.save()
-            return `O status de sua tarefa foi alterado:\nMensagem: ${lista.mensagem}\nStatus: ${lista.status ? 'Concluído' : 'Pendente'}`
+            return response.ok({message: `O status de sua tarefa foi alterado:\nMensagem: ${lista.mensagem}\nStatus: ${lista.status ? 'Concluído' : 'Pendente'}`})
 
         }catch(error:any){
             return response.unauthorized({message: 'Você não pode alterar essa task.'})
@@ -54,7 +54,7 @@ export default class ListasController {
 
         try{
             await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('web').user?.id}`).delete().firstOrFail()
-            return 'Task apagada com sucesso!'
+            return response.ok({message: 'Task apagada com sucesso!'})
             
         }catch(error:any){
             return response.unauthorized({message: 'Você não pode apagar essa task.'})

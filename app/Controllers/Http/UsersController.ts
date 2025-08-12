@@ -17,10 +17,10 @@ export default class UsersController {
                 senha: dadosUsuario.senha
             })
 
-            return response.accepted({message: 'Usuario criado com sucesso.'})
+            return response.created({message: 'Usuario criado com sucesso.'})
         } catch(error:any){
             
-            return response.unauthorized(error)
+            return response.conflict(error)
         }
     }
 
@@ -35,7 +35,7 @@ export default class UsersController {
             if(usuario.ativo == false) await Usuario.query().where('email', '=', `${email}`).update({'ativo': 1});
 
             await auth.use('web').login(usuario)
-            return response.accepted({message: `Bem vindo ${usuario.nome}!`})
+            return response.ok({message: `Bem vindo ${usuario.nome}!`})
             
         }catch{
             response.unauthorized({message: 'Email ou senha incorretos.'})
@@ -49,7 +49,7 @@ export default class UsersController {
 
         if(!usuario) return response.notFound({message: 'Usuário não existe.'});
 
-        return response.accepted(usuario)
+        return response.ok(usuario)
     }
 
     public async atualizar({ request, response, auth}: HttpContextContract){
@@ -59,18 +59,18 @@ export default class UsersController {
 
         if(dadosUsuario.nome){
             await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'nome': dadosUsuario.nome})
-            return response.accepted({message: 'Seu nome foi alterado com sucesso.'})
+            return response.ok({message: 'Seu nome foi alterado com sucesso.'})
         }
         if(dadosUsuario.email){
             await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'email': dadosUsuario.email})
-            return response.accepted({message: 'Seu email foi alterado com sucesso.'})
+            return response.ok({message: 'Seu email foi alterado com sucesso.'})
         }
         if(dadosUsuario.senha){
             await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'senha': await Hash.make(dadosUsuario.senha)})
-            return response.accepted({message: 'Sua senha foi alterada com sucesso.'})
+            return response.ok({message: 'Sua senha foi alterada com sucesso.'})
         }
 
-        return response.unauthorized({message: 'Erro: envie um dado para atualizar.'})
+        return response.badRequest({message: 'Erro: envie um dado para atualizar.'})
     }
 
     public async excluir({ response, auth }: HttpContextContract){
@@ -79,7 +79,7 @@ export default class UsersController {
             await auth.use('web').authenticate()
             await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'ativo': 0})
             await auth.use('web').logout()
-            return response.accepted({message: 'Sua conta foi excluída com sucesso.'})
+            return response.ok({message: 'Sua conta foi excluída com sucesso.'})
             
         }catch(error){
             response.unauthorized({message: 'Faça Login para continuar.'})
