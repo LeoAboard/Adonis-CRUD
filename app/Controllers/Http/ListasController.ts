@@ -11,7 +11,7 @@ export default class ListasController {
             const validator = await request.validate(CriarListaValidator)
 
             await Lista.create({
-                id_usuario: auth.use('web').user.id,
+                id_usuario: auth.use('web').user?.id,
                 mensagem: validator.mensagem,
                 status: false
             })
@@ -26,17 +26,18 @@ export default class ListasController {
     public async exibir({ auth }: HttpContextContract){
 
         await auth.use('web').authenticate()
-        const lista = await Lista.query().where('id_usuario', '=', `${auth.use('web').user.id}`).select('id', 'mensagem', 'status')
+        const lista = await Lista.query().where('id_usuario', '=', `${auth.use('web').user?.id}`).select('id', 'mensagem', 'status')
         return lista
     }
 
     public async atualizar({ request, response, auth }: HttpContextContract){
 
         await auth.use('web').authenticate()
+
         const { id } = request.all()
 
         try{
-            const lista = await Lista.query().where('id', id).andWhere('id_usuario', auth.use('web').user.id).firstOrFail()
+            const lista = await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('web').user?.id}`).firstOrFail()
             lista.merge({ status: !lista.status })
             await lista.save()
             return `O status de sua tarefa foi alterado:\nMensagem: ${lista.mensagem}\nStatus: ${lista.status ? 'Concluído' : 'Pendente'}`
@@ -52,7 +53,7 @@ export default class ListasController {
         const { id } = request.all()
 
         try{
-            await Lista.query().where('id', id).andWhere('id_usuario', auth.use('web').user.id).delete().firstOrFail()
+            await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('web').user?.id}`).delete().firstOrFail()
             return 'Task apagada com sucesso!'
             
         }catch(error:any){

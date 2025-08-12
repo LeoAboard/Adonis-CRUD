@@ -58,15 +58,15 @@ export default class UsersController {
         const dadosUsuario = await request.validate(AtualizarUsuarioValidator)
 
         if(dadosUsuario.nome){
-            await Usuario.query().where('id', '=', `${auth.use('web').user.id}`).update({'nome': dadosUsuario.nome})
+            await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'nome': dadosUsuario.nome})
             return response.accepted({message: 'Seu nome foi alterado com sucesso.'})
         }
         if(dadosUsuario.email){
-            await Usuario.query().where('id', '=', `${auth.use('web').user.id}`).update({'email': dadosUsuario.email})
+            await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'email': dadosUsuario.email})
             return response.accepted({message: 'Seu email foi alterado com sucesso.'})
         }
         if(dadosUsuario.senha){
-            await Usuario.query().where('id', '=', `${auth.use('web').user.id}`).update({'senha': await Hash.make(dadosUsuario.senha)})
+            await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'senha': await Hash.make(dadosUsuario.senha)})
             return response.accepted({message: 'Sua senha foi alterada com sucesso.'})
         }
 
@@ -77,7 +77,7 @@ export default class UsersController {
 
         try{
             await auth.use('web').authenticate()
-            await Usuario.query().where('id', '=', `${auth.use('web').user.id}`).update({'ativo': 0})
+            await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'ativo': 0})
             await auth.use('web').logout()
             return response.accepted({message: 'Sua conta foi excluída com sucesso.'})
             
