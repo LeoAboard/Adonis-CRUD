@@ -17,9 +17,9 @@ export default class UsersController {
                 senha: dadosUsuario.senha
             })
 
-            return 'Usuario criado com sucesso.'
-            
+            return response.accepted({message: 'Usuario criado com sucesso.'})
         } catch(error:any){
+            
             return response.unauthorized(error)
         }
     }
@@ -35,8 +35,8 @@ export default class UsersController {
             if(usuario.ativo == false) await Usuario.query().where('email', '=', `${email}`).update({'ativo': 1});
 
             await auth.use('web').login(usuario)
-            return `Bem vindo ${usuario.nome}!`
-
+            return response.accepted({message: `Bem vindo ${usuario.nome}!`})
+            
         }catch{
             response.unauthorized({message: 'Email ou senha incorretos.'})
         }
@@ -79,8 +79,8 @@ export default class UsersController {
             await auth.use('web').authenticate()
             await Usuario.query().where('id', '=', `${auth.use('web').user.id}`).update({'ativo': 0})
             await auth.use('web').logout()
-            return response.status(200).accepted({message: 'Sua conta foi excluída com sucesso.'})
-
+            return response.accepted({message: 'Sua conta foi excluída com sucesso.'})
+            
         }catch(error){
             response.unauthorized({message: 'Faça Login para continuar.'})
         }
