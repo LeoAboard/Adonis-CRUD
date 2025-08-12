@@ -4,62 +4,59 @@ import Lista from 'App/Models/Lista'
 
 export default class ListasController {
 
-    public async create({ request, response, payload }: HttpContextContract){
+    public async create({ request, response, auth }: HttpContextContract){
 
         try{
+            await auth.use('web').authenticate()
             const validator = await request.validate(CriarListaValidator)
 
-            const lista = await Lista.create({
-                id_usuario: payload,
+            await Lista.create({
+                id_usuario: auth.use('web').user.id,
                 mensagem: validator.mensagem,
                 status: false
             })
 
-            return `Sua mensagem foi enviada: ${lista.mensagem}`
+            return response.accepted({message: 'Sua mensagem foi enviada.'})
 
-        } catch(error:any){
-            return response.badRequest(error.CustomMessages)
+        }catch(error:any){
+            return response.unauthorized(error)
         }
     }
 
-    public async exibir({ payload }: HttpContextContract){
-        const lista = await Lista.query().where('id_usuario', '=', `${payload}`).select('id', 'mensagem', 'status')
+    public async exibir({ auth }: HttpContextContract){
 
+        await auth.use('web').authenticate()
+        const lista = await Lista.query().where('id_usuario', '=', `${auth.use('web').user.id}`).select('id', 'mensagem', 'status')
         return lista
     }
 
-    public async atualizar({ request, payload }: HttpContextContract){
+    public async atualizar({ request, response, auth }: HttpContextContract){
+
+        await auth.use('web').authenticate()
         const { id } = request.all()
 
-        if(!payload){
-            return 'erro'
-        }
-
         try{
-            const lista = await Lista.query().where('id', id).andWhere('id_usuario', payload).firstOrFail()
-
+            const lista = await Lista.query().where('id', id).andWhere('id_usuario', auth.use('web').user.id).firstOrFail()
             lista.merge({ status: !lista.status })
             await lista.save()
             return `O status de sua tarefa foi alterado:\nMensagem: ${lista.mensagem}\nStatus: ${lista.status ? 'Concluído' : 'Pendente'}`
 
-        } catch(error:any){
-            return 'Você não pode alterar essa task.'
+        }catch(error:any){
+            return response.unauthorized({message: 'Você não pode alterar essa task.'})
         }
     }
 
-    public async excluir({ request, payload }: HttpContextContract){
+    public async excluir({ request, response, auth }: HttpContextContract){
+
+        await auth.use('web').authenticate()
         const { id } = request.all()
 
-        if(!payload){
-            return 'erro'
-        }
-
         try{
-            const lista = await Lista.query().where('id', id).andWhere('id_usuario', payload).delete()
-            if(!lista[0]) throw console.error();
+            await Lista.query().where('id', id).andWhere('id_usuario', auth.use('web').user.id).delete().firstOrFail()
             return 'Task apagada com sucesso!'
-        } catch(error:any){
-            return 'Você não pode apagar essa task.'
+            
+        }catch(error:any){
+            return response.unauthorized({message: 'Você não pode apagar essa task.'})
         }
     }
 }
