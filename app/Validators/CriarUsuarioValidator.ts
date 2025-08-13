@@ -26,7 +26,9 @@ export default class CriarUsuarioValidator {
 
   public schema = schema.create({
 
-    nome: schema.string(),
+    nome: schema.string({}, [
+      rules.minLength(2)
+    ]),
 
     email: schema.string({}, [
       rules.email(), rules.unique({table: 'usuarios', column: 'email'})
@@ -54,6 +56,7 @@ export default class CriarUsuarioValidator {
     'email.required': 'Informe seu email.',
     'senha.required': 'Crie uma senha.',
     'email.unique': 'Email já cadastrado.',
-    'senha.minLength': 'Senha precisa ter ao menos 6 caracteres'
+    'nome.MinLength': 'Nome precisa ter ao menos 2 caracteres.',
+    'senha.minLength': 'Senha precisa ter ao menos 6 caracteres.'
   }
 }

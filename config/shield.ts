@@ -25,7 +25,7 @@ export const csp: ShieldConfig['csp'] = {
   | The CSP rules are disabled by default for seamless onboarding.
   |
   */
-  enabled: true,
+  enabled: false,
 
   /*
   |--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ export const csrf: ShieldConfig['csrf'] = {
   | Enable/Disable CSRF
   |--------------------------------------------------------------------------
   */
-  enabled: true,
+  enabled: false,
 
   /*
   |--------------------------------------------------------------------------
@@ -119,6 +119,15 @@ export const csrf: ShieldConfig['csrf'] = {
   |
   */
   methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
+
+  cookieOptions:  {
+    domain: '',
+    path: '/signin',
+    maxAge: '2h',
+    httpOnly: true,
+    secure: false,
+    sameSite: false,
+  }
 }
 
 /*
@@ -138,7 +147,7 @@ export const dnsPrefetch: ShieldConfig['dnsPrefetch'] = {
   | Enable/disable this feature
   |--------------------------------------------------------------------------
   */
-  enabled: true,
+  enabled: false,
 
   /*
   |--------------------------------------------------------------------------
@@ -170,7 +179,7 @@ export const dnsPrefetch: ShieldConfig['dnsPrefetch'] = {
 | Learn more at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 */
 export const xFrame: ShieldConfig['xFrame'] = {
-  enabled: true,
+  enabled: false,
   action: 'DENY',
 }
 

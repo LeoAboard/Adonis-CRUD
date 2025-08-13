@@ -1,26 +1,22 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import CriarListaValidator from 'App/Validators/CriarListaValidator'
 import Lista from 'App/Models/Lista'
+import Database from '@ioc:Adonis/Lucid/Database'
 
 export default class ListasController {
 
     public async create({ request, response, auth }: HttpContextContract){
 
-        try{
-            await auth.use('web').authenticate()
-            const validator = await request.validate(CriarListaValidator)
+        await auth.use('web').authenticate()
+        const validator = await request.validate(CriarListaValidator)
 
-            await Lista.create({
-                id_usuario: auth.use('web').user?.id,
-                mensagem: validator.mensagem,
-                status: false
-            })
+        await Lista.create({
+            id_usuario: auth.use('web').user?.id,
+            mensagem: validator.mensagem,
+            status: false
+        })
 
-            return response.created({message: 'Sua mensagem foi enviada.'})
-
-        }catch(error:any){
-            return response.unauthorized(error)
-        }
+        return response.created({ message: 'Sua mensagem foi enviada.' })        
     }
 
     public async exibir({ response, auth }: HttpContextContract){
@@ -33,31 +29,21 @@ export default class ListasController {
     public async atualizar({ request, response, auth }: HttpContextContract){
 
         await auth.use('web').authenticate()
-
         const { id } = request.all()
 
-        try{
+        await Database.transaction(async () => {
             const lista = await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('web').user?.id}`).firstOrFail()
             lista.merge({ status: !lista.status })
             await lista.save()
-            return response.ok({message: `O status de sua tarefa foi alterado:\nMensagem: ${lista.mensagem}\nStatus: ${lista.status ? 'Concluído' : 'Pendente'}`})
-
-        }catch(error:any){
-            return response.unauthorized({message: 'Você não pode alterar essa task.'})
-        }
+            return response.ok({ message: `O status de sua tarefa foi alterado:\nMensagem: ${lista.mensagem}\nStatus: ${lista.status ? 'Concluído' : 'Pendente'}` })
+        })
     }
 
     public async excluir({ request, response, auth }: HttpContextContract){
 
         await auth.use('web').authenticate()
         const { id } = request.all()
-
-        try{
-            await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('web').user?.id}`).delete().firstOrFail()
-            return response.ok({message: 'Task apagada com sucesso!'})
-            
-        }catch(error:any){
-            return response.unauthorized({message: 'Você não pode apagar essa task.'})
-        }
+        await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('web').user?.id}`).delete().firstOrFail()
+        return response.ok({ message: 'Task apagada com sucesso!' })
     }
 }

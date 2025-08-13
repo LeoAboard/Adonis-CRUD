@@ -43,6 +43,6 @@ export default class CriarListaValidator {
    *
    */
   public messages: CustomMessages = {
-    'mensagem.minLength': 'Informe uma task.'
+    'mensagem.required': 'Informe uma task.'
   }
 }

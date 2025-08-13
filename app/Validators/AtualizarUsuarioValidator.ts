@@ -25,7 +25,9 @@ export default class AtualizarUsuarioValidator {
    */
   public schema = schema.create({
 
-    nome: schema.string.optional({}),
+    nome: schema.string.optional({}, [
+      rules.minLength(2)
+    ]),
 
     email: schema.string.optional({}, [
       rules.email(), rules.unique({table: 'usuarios', column: 'email'})
@@ -48,5 +50,9 @@ export default class AtualizarUsuarioValidator {
    * }
    *
    */
-  public messages: CustomMessages = {}
+  public messages: CustomMessages = {
+    'email.unique': 'Email já cadastrado.',
+    'nome.minLength': 'Nome precisa ter ao menos 2 caracteres.',
+    'senha.minLength': 'Senha precisa ter ao menos 6 caracteres.'
+  }
 }
