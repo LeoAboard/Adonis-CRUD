@@ -7,11 +7,11 @@ export default class ListasController {
 
     public async create({ request, response, auth }: HttpContextContract){
 
-        await auth.use('web').authenticate()
+        await auth.use('api').authenticate()
         const validator = await request.validate(CriarListaValidator)
 
         await Lista.create({
-            id_usuario: auth.use('web').user?.id,
+            id_usuario: auth.use('api').user?.id,
             mensagem: validator.mensagem,
             status: false
         })
@@ -21,29 +21,29 @@ export default class ListasController {
 
     public async exibir({ response, auth }: HttpContextContract){
 
-        await auth.use('web').authenticate()
-        const lista = await Lista.query().where('id_usuario', '=', `${auth.use('web').user?.id}`).select('id', 'mensagem', 'status')
+        await auth.use('api').authenticate()
+        const lista = await Lista.query().where('id_usuario', '=', `${auth.use('api').user?.id}`).select('id', 'mensagem', 'status')
         return response.ok(lista)
     }
 
     public async atualizar({ request, response, auth }: HttpContextContract){
 
-        await auth.use('web').authenticate()
+        await auth.use('api').authenticate()
         const { id } = request.all()
 
         await Database.transaction(async () => {
-            const lista = await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('web').user?.id}`).firstOrFail()
+            const lista = await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('api').user?.id}`).firstOrFail()
             lista.merge({ status: !lista.status })
             await lista.save()
-            return response.ok({ message: `O status de sua tarefa foi alterado:\nMensagem: ${lista.mensagem}\nStatus: ${lista.status ? 'Concluído' : 'Pendente'}` })
+            return response.ok({ message: `O status de sua tarefa foi alterado Mensagem: ${lista.mensagem} Status: ${lista.status ? 'Concluído' : 'Pendente'}` })
         })
     }
 
     public async excluir({ request, response, auth }: HttpContextContract){
 
-        await auth.use('web').authenticate()
+        await auth.use('api').authenticate()
         const { id } = request.all()
-        await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('web').user?.id}`).delete().firstOrFail()
+        await Lista.query().where('id', id).andWhere('id_usuario', `${auth.use('api').user?.id}`).delete().firstOrFail()
         return response.ok({ message: 'Task apagada com sucesso!' })
     }
 }

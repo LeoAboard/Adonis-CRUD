@@ -28,14 +28,19 @@ export default class UsersController {
 
         await Database.transaction(async () => {
 
-            const usuario = await Usuario.query().select('id','nome', 'email', 'senha', 'ativo').where('email', '=', `${email}`).firstOrFail()
+            const usuario = await Usuario.findBy('email', email)
+
+            if(!usuario) throw new Exception('', 403)
             
             if(!(await Hash.verify(usuario.senha, senha))) throw new Exception('', 403)
         
-            if(usuario.ativo == false) await Usuario.query().where('email', '=', `${email}`).update({'ativo': 1});
+            if(usuario.ativo == false){
+                usuario.merge({'ativo': true});
+                usuario.save()
+            }
 
-            await auth.use('web').login(usuario)
-            return response.ok({ message: `Bem vindo ${usuario.nome}!` })
+            let token = await auth.use('api').login(usuario, {expiresIn: '1d'})
+            return response.ok({ message: `Bem vindo ${usuario.nome}!`, token})
         })
             
     }
@@ -52,20 +57,20 @@ export default class UsersController {
 
     public async atualizar({ request, response, auth }: HttpContextContract){
 
-        await auth.use('web').authenticate()
+        await auth.use('api').authenticate()
 
         const dadosUsuario = await request.validate(AtualizarUsuarioValidator)
 
         if(dadosUsuario.nome){
-            await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'nome': dadosUsuario.nome})
+            await Usuario.query().where('id', '=', `${auth.use('api').user?.id}`).update({'nome': dadosUsuario.nome})
             return response.ok({ message: 'Seu nome foi alterado com sucesso.' })
         }
         if(dadosUsuario.email){
-            await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'email': dadosUsuario.email})
+            await Usuario.query().where('id', '=', `${auth.use('api').user?.id}`).update({'email': dadosUsuario.email})
             return response.ok({ message: 'Seu email foi alterado com sucesso.' })
         }
         if(dadosUsuario.senha){
-            await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'senha': await Hash.make(dadosUsuario.senha)})
+            await Usuario.query().where('id', '=', `${auth.use('api').user?.id}`).update({'senha': await Hash.make(dadosUsuario.senha)})
             return response.ok({ message: 'Sua senha foi alterada com sucesso.' })
         }
 
@@ -74,10 +79,9 @@ export default class UsersController {
 
     public async excluir({ response, auth }: HttpContextContract){
 
-    await auth.use('web').authenticate()
-    await Usuario.query().where('id', '=', `${auth.use('web').user?.id}`).update({'ativo': 0})
-    await auth.use('web').logout()
-    return response.ok({ message: 'Sua conta foi excluída com sucesso.' })
-        
+        await auth.use('api').authenticate()
+        await Usuario.query().where('id', '=', `${auth.use('api').user?.id}`).update({'ativo': 0})
+        await auth.use('api').logout()
+        return response.ok({ message: 'Sua conta foi excluída com sucesso.' })
     }
 }
